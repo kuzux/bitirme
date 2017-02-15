@@ -17,3 +17,7 @@ returns the aggregated data in a similar format to how it is uploaded.
 /upload
 
 upload data in a json format. as a list of objects which all have a date column as a unix timestamp
+
+/raw
+
+returns the uploaded data in a raw json format
