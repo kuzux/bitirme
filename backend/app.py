@@ -1,11 +1,14 @@
 from flask import Flask, request
 import json
+import datetime
 
 app = Flask(__name__)
 
 @app.route('/hello')
 def hello():
     return "Hello 492"
+
+data = []
 
 @app.route('/group-by/<interval>/<operation>')
 def group_by(interval, operation):
@@ -18,14 +21,16 @@ def group_by(interval, operation):
     if not operation in ops:
         return json.dumps({"status": "error", "error": "Invalid operation"})
 
-    res = group_data(interval, operation)
+    res = group_data(data, interval, operation)
 
-    if res is not None:
+    if res is None:
         return json.dumps({"status": "error", "error": "Data processing error"})
 
     return res
 
-data = []
+@app.route('/raw')
+def raw():
+    return json.dumps(data)
 
 @app.route('/upload', methods=["POST"])
 def upload():
@@ -39,7 +44,29 @@ def upload():
     except ValueError:
         return json.dumps({"status": "error", "error": "JSON parsing error"})
 
-def group_data(interval, operation):
-    pass
+def group_data(data, interval, operation):
+    res = [[]]
+    for elem in data:
+        last_group = None
+        if len(res[0]) == 0:
+            d = datetime.datetime.fromtimestamp(elem['date'])
+
+            if interval == 'month':
+                last_group = datetime.datetime(d.year, d.month, 1)
+            elif interval == 'week':
+                last_group = datetime.datetime(d.year, d.month, d.day)
+                last_group -= datetime.timedelta(days=d.weekday())
+            elif interval == 'day':
+                last_group = datetime.datetime(d.year, d.month, d.day)
+            elif interval == 'hour':
+                last_group = datetime.datetime(d.year, d.month, d.day, d.hour)
+            else:
+                raise ValueError
+
+            res[-1].append((last_group, elem))
+        else:
+            last_group = res[-1][0][0]
+
+    return res
 
 app.run(debug=True)
