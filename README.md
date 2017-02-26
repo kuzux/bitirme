@@ -4,7 +4,11 @@ cmpe492 capstone project. Visualization of multivariate data
 
 # api 
 
-/group-by/{interval}/{operation}
+/group-by/{field}/{operation}
+
+group by non-time field performing an operation.
+
+/group-by-time/{interval}/{operation}
 
 group by time interval performing an operation.
 

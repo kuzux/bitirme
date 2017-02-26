@@ -10,8 +10,17 @@ def hello():
 
 data = []
 
-@app.route('/group-by/<interval>/<operation>')
-def group_by(interval, operation):
+@app.route('/group-by/<field>/<operation>'):
+    ops = ['sum', 'product', 'min', 'max']
+
+    if not operation in ops:
+        return json.dumps({"status": "error", "error": "Invalid operation"})
+
+    return json.dumps({"status": "error", "error": "Not yet implemented"}
+
+
+@app.route('/group-by-time/<interval>/<operation>')
+def group_by_time(interval, operation):
     intervals = ['hour', 'day', 'week', 'month']
     ops = ['sum', 'product', 'min', 'max']
     
