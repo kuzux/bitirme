@@ -11,13 +11,18 @@ def hello():
 data = []
 
 @app.route('/group-by/<field>/<operation>'):
+def group_by(field, operation):
     ops = ['sum', 'product', 'min', 'max']
 
     if not operation in ops:
         return json.dumps({"status": "error", "error": "Invalid operation"})
 
-    return json.dumps({"status": "error", "error": "Not yet implemented"}
+    res = group_data(data, field, operation)
 
+    if res is None:
+        return json.dumps({"status": "error", "error": "Data processing error"})
+
+    return json.dumps({"status": "ok", "result": res}
 
 @app.route('/group-by-time/<interval>/<operation>')
 def group_by_time(interval, operation):
@@ -30,12 +35,12 @@ def group_by_time(interval, operation):
     if not operation in ops:
         return json.dumps({"status": "error", "error": "Invalid operation"})
 
-    res = group_data(data, interval, operation)
+    res = group_data_time(data, interval, operation)
 
     if res is None:
         return json.dumps({"status": "error", "error": "Data processing error"})
 
-    return res
+    return json.dumps({"status": "ok", "result": res}
 
 @app.route('/raw')
 def raw():
@@ -53,7 +58,21 @@ def upload():
     except ValueError:
         return json.dumps({"status": "error", "error": "JSON parsing error"})
 
-def group_data(data, interval, operation):
+def group_data(data, field, operation):
+    groups = {}
+
+    for elem in data:
+        if field not in elem:
+            return None
+
+        if elem[field] in groups:
+            groups[elem[field]].append(elem)
+        else:
+            groups[elem[field]] = [elem]
+
+    return groups
+
+def group_data_time(data, interval, operation):
     res = [[]]
     for elem in data:
         last_group = None
