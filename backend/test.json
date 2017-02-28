@@ -1,1 +1,8 @@
-[{"asd": "qwe"}]
+[
+    {"time": 357, "person": 123, "product": 12345, "value": 2},
+    {"time": 3578, "person": 123, "product": 12345, "value": 2},
+    {"time": 35789, "person": 123, "product": 12345, "value": 2},
+    {"time": 357890, "person": 123, "product": 12345, "value": 2},
+    {"time": 3578999, "person": 123, "product": 12345, "value": 2},
+    {"time": 357123456, "person": 123, "product": 12345, "value": 2}
+]

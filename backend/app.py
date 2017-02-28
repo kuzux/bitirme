@@ -10,24 +10,24 @@ def hello():
 
 data = []
 
-@app.route('/group-by/<field>/<operation>'):
-def group_by(field, operation):
-    ops = ['sum', 'product', 'min', 'max']
+@app.route('/group-by/<field>/<operation>/<op_field>')
+def group_by(field, operation, op_field):
+    ops = ['sum', 'product', 'min', 'max', 'length', 'id']
 
     if not operation in ops:
         return json.dumps({"status": "error", "error": "Invalid operation"})
 
-    res = group_data(data, field, operation)
+    res = group_data(data, field, operation, op_field)
 
     if res is None:
         return json.dumps({"status": "error", "error": "Data processing error"})
 
-    return json.dumps({"status": "ok", "result": res}
+    return json.dumps({"status": "ok", "result": res})
 
 @app.route('/group-by-time/<interval>/<operation>')
 def group_by_time(interval, operation):
     intervals = ['hour', 'day', 'week', 'month']
-    ops = ['sum', 'product', 'min', 'max']
+    ops = ['sum', 'product', 'min', 'max', 'length']
     
     if not interval in intervals:
         return json.dumps({"status": "error", "error": "Invalid time interval"})
@@ -40,7 +40,7 @@ def group_by_time(interval, operation):
     if res is None:
         return json.dumps({"status": "error", "error": "Data processing error"})
 
-    return json.dumps({"status": "ok", "result": res}
+    return json.dumps({"status": "ok", "result": res})
 
 @app.route('/raw')
 def raw():
@@ -58,7 +58,7 @@ def upload():
     except ValueError:
         return json.dumps({"status": "error", "error": "JSON parsing error"})
 
-def group_data(data, field, operation):
+def group_data(data, field, operation, op_field):
     groups = {}
 
     for elem in data:
@@ -74,10 +74,14 @@ def group_data(data, field, operation):
         'sum': sum, 
         'product': lambda a: reduce(lambda x, y: x * y, a), 
         'min': min, 
-        'max': max
+        'max': max,
+        'length': lambda x: len(x),
+        'id': lambda x: x
     }
 
-    return { k: mappers[operation] for k, v in groups } 
+    print groups
+
+    return { e: mappers[operation](map(lambda x: x[op_field], groups[e])) for e in groups } 
 
 def group_data_time(data, interval, operation):
     res = [[]]
