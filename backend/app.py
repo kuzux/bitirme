@@ -70,7 +70,14 @@ def group_data(data, field, operation):
         else:
             groups[elem[field]] = [elem]
 
-    return groups
+    mappers = {
+        'sum': sum, 
+        'product': lambda a: reduce(lambda x, y: x * y, a), 
+        'min': min, 
+        'max': max
+    }
+
+    return { k: mappers[operation] for k, v in groups } 
 
 def group_data_time(data, interval, operation):
     res = [[]]
