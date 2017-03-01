@@ -4,8 +4,7 @@ cmpe492 capstone project. Visualization of multivariate data
 
 # api 
 
-/group-by/{field}/{operation}
-
+/group-by/{field}/{operation}/{op-field} 
 group by non-time field performing an operation.
 
 /group-by-time/{interval}/{operation}
@@ -14,7 +13,9 @@ group by time interval performing an operation.
 
 interval => hour, day, week, month. 
 
-operation => sum, product, min, max.
+operation => sum, product, min, max, length
+
+op-field => which field to perform the operation on
 
 returns the aggregated data in a similar format to how it is uploaded.
 
