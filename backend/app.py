@@ -1,8 +1,13 @@
+from __future__ import print_function
+
 from flask import Flask, request
 import json
 import datetime
 
+import codecs
+
 app = Flask(__name__)
+decoder = codecs.getreader('utf-8')
 
 @app.route('/hello')
 def hello():
@@ -51,7 +56,7 @@ def upload():
     file = request.files['file']
     
     try:
-        res = json.load(file)
+        res = json.load(decoder(file))
         global data
         data = res
         return json.dumps({"status": "ok"})
@@ -79,7 +84,7 @@ def group_data(data, field, operation, op_field):
         'id': lambda x: x
     }
 
-    print groups
+    print(groups)
 
     return { e: mappers[operation](map(lambda x: x[op_field], groups[e])) for e in groups } 
 
