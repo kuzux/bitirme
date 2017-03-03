@@ -3,6 +3,7 @@ from __future__ import print_function
 from flask import Flask, request
 import json
 import datetime
+import csv
 
 import codecs
 
@@ -62,6 +63,12 @@ def upload():
         return json.dumps({"status": "ok"})
     except ValueError:
         return json.dumps({"status": "error", "error": "JSON parsing error"})
+
+@app.route('/upload/csv', methods=["POST"])
+def upload_csv():
+    file = request.files['file']
+
+    return json.dumps({"status": "error", "error": "not implemented yet"})
 
 def group_data(data, field, operation, op_field):
     groups = {}
