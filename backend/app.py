@@ -14,7 +14,9 @@ decoder = codecs.getreader('utf-8')
 def hello():
     return "Hello 492"
 
+
 data = []
+
 
 @app.route('/group-by/<field>/<operation>/<op_field>')
 def group_by(field, operation, op_field):
