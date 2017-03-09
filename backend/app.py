@@ -69,12 +69,14 @@ def upload():
 @app.route('/upload/csv', methods=["POST"])
 def upload_csv():
     file = request.files['file']
-    read = csv.reader(file)
+    read = csv.DictReader(file)
 
-    for row in read:
-        data.append(row)
-
-    return json.dumps({"status": "ok"})
+    try:
+        for row in read:
+            data.append(row)
+        return json.dumps({"status": "ok"})
+    except csv.Error:
+        return json.dumps({"status": "error", "error": "CSV parsing error"})
 
 def group_data(data, field, operation, op_field):
     groups = {}
