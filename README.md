@@ -4,6 +4,14 @@ cmpe492 capstone project. Visualization of multivariate data
 
 # api 
 
+/group-by/{field}
+
+group by a non-time field returning the folded tensor
+
+/group-by-time/{interval}
+
+group by the time field specifying an interval
+
 /group-by/{field}/{operation}/{op-field} 
 
 group by non-time field performing an operation.

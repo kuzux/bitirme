@@ -17,6 +17,24 @@ def hello():
 
 data = []
 
+@app.route('/group-by/<field>')
+def group_by_list(field):
+    groups = {}
+
+    for elem in data:
+        if field not in elem:
+            return json.dumps({"status": "error", "error": "Data processing error"})
+
+        if elem[field] in groups:
+            groups[elem[field]].append(elem)
+        else:
+            groups[elem[field]] = [elem]
+
+    return json.dumps({"status": "ok", "result": groups})
+
+@app.route('/group-by/<interval>')
+def group_by_time_list(interval):
+    pass
 
 @app.route('/group-by/<field>/<operation>/<op_field>')
 def group_by(field, operation, op_field):
@@ -56,6 +74,9 @@ def raw():
 
 @app.route('/upload', methods=["POST"])
 def upload():
+    global data
+    data = []
+
     file = request.files['file']
     
     try:
@@ -68,6 +89,9 @@ def upload():
 
 @app.route('/upload/csv', methods=["POST"])
 def upload_csv():
+    global data
+    data = []
+
     file = request.files['file']
     read = csv.DictReader(file)
 
@@ -98,8 +122,6 @@ def group_data(data, field, operation, op_field):
         'length': lambda x: len(x),
         'id': lambda x: x
     }
-
-    print(groups)
 
     return { e: mappers[operation](map(lambda x: x[op_field], groups[e])) for e in groups } 
 
