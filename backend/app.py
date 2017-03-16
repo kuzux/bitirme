@@ -1,10 +1,11 @@
 from __future__ import print_function
 
 from flask import Flask, request
+
 import json
 import datetime
 import csv
-
+import os
 import codecs
 
 app = Flask(__name__)
@@ -150,4 +151,4 @@ def group_data_time(data, interval, operation):
 
     return res
 
-app.run(debug=True)
+app.run(debug=True, port=int(os.environ['PORT']))
