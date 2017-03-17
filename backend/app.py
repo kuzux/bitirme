@@ -11,6 +11,11 @@ import codecs
 app = Flask(__name__)
 decoder = codecs.getreader('utf-8')
 
+@app.route('/')
+def index():
+    with open('../README.md') as f:
+        return f.read()
+
 @app.route('/hello')
 def hello():
     return "Hello 492"

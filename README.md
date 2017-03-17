@@ -4,6 +4,14 @@ cmpe492 capstone project. Visualization of multivariate data
 
 # api 
 
+/
+
+returns the contents of this file
+
+/hello
+
+test call. returns a simple string. might be useful to check whether the service is up
+
 /group-by/{field}
 
 group by a non-time field returning the folded tensor
