@@ -18,33 +18,36 @@
 
 \maketitle
 
-\section{Abstract} 
+\tableofcontents
 
-%% 
+\section{Abstract} 
 
 \section{Introduction}
 
 \subsection{Motivation}
 
-In the real world, there is a lot of data that needs to viewed by humans but simply is too complicated for humans to look at in an unprocessed form. Some form of visualization and data summarization can help immensely for viewing data that is too complicated to view. A fairly common form of this data is a set of data that is dependent on multiple variables one of which is time. There can be some interesting visualization methods applied under these extra conditions but there doesn't seem to be any matching these criteria.
+In the real world, there is a lot of data that needs to viewed by humans but simply is too complicated for humans to look at in an unprocessed form. Some form of visualization and data summarization can help immensely for viewing data that is too complicated to view. A fairly common form of this data is a set of data that is dependent on multiple variables one of which is time. There can be some interesting visualization methods applied under these extra conditions but there does not seem to be any matching these criteria. As a capstone project, our aim is to seek for these methods and implement a tool to make complex data, especially multivariate time-series data visualizable. 
 
 \subsection{Example Data}
-%% - Motivation, why are we doing this
-%% - What type of data we have, what do we want to visualize
+We have an example dataset that is currently used to test the system (besides a bunch of dummy files not worthy of discussion), which is in a prototype stage at that point. It takes about 1MB space on disk in a CSV format and has about 18K rows. It is about some electric bill reading data and has multiple numeric fields that can be used to group the entire data by. That is a fairly useful real world example that can later be used to test how the system performs on middle-sized data (i.e. bigger than dummy but easily fits on memory). In the end we want this to be able to seen in a visualization as grouped (or folded) by several fields including (but not limited to) time. 
 
 \section{Background}
+
+Performing some groupings and foldings on complex data requires one to understand it's behaviour and structure. For instance, there are several operations that can be performed on time series data. 
+
+Provided with such complex data, it is not possible to store it as a matrix 
 
 %% - What is a tensor
 %% - Our data and tensor relationship (tensor of rank 2 in R^3) 
 %% - How are the tensors represented? -> bipartite graph(factor graphs)
-%% - Data structures for tensors? 
-%% - Visualization of 
+%% - Data structures for tensors, how to store sparse tensors
+%% - Visualization 
 
 \section{Methods}
 
 %% Our method to represent tensor
 %% Folding tensors, the operations 
-%%  - Summation over an index (collapsing a tensor ;d)
+%%  - Summation over an index (collapsing a tensor)
 %%  - Multiplication 
 %% (Implementation)
 %%  - How to upload data 
@@ -60,6 +63,8 @@ In the real world, there is a lot of data that needs to viewed by humans but sim
 So, after all, to successfully visualize the data we have and make somewhat usable project out of it, we need to implement what we learned into a usable program. In the current day and age, the most widely-usable platform where our implementation can be used as easily as possible, plus considering that mobile users aren't our target, the web is the obvious option as the platform of choice. Not to mention that we are both familiar with the development environment from our previous experiences both within and outside of school.
 
 \section {Conclusion} 
+
+In the end, we were able to have an idea about what we are visualizing and why. We also made some critical decisions about the future of the project and some paths we needed to take. And we built a proof-of-concept implementation, even if this one likely isn't going to be the exact basis of the final implementation due to its inefficiencies; it's a pretty good starting point and a reference point.
 
 %% Simdiye kadar bunlari yaptik, 
 %% Future work 
