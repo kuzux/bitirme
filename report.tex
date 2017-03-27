@@ -8,6 +8,8 @@
 \usepackage{setspace}
 \usepackage{multirow}
 
+\graphicspath{ {/Users/evinpinar/Desktop/} }
+
 \onehalfspacing
 
 \title{Visualization of Multivariate Time-Series Data \\ Midterm Report}
@@ -18,62 +20,69 @@
 
 \maketitle
 
-\tableofcontents
+%\tableofcontents
 
-\section{Abstract} 
-
-\section{Introduction}
-
-\subsection{Motivation}
+\section{Introduction and Motivation}
 
 In the real world, there is a lot of data that needs to viewed by humans but simply is too complicated for humans to look at in an unprocessed form. Some form of visualization and data summarization can help immensely for viewing data that is too complicated to view. A fairly common form of this data is a set of data that is dependent on multiple variables one of which is time. There can be some interesting visualization methods applied under these extra conditions but there does not seem to be any matching these criteria. As a capstone project, our aim is to seek for these methods and implement a tool to make complex data, especially multivariate time-series data visualizable. 
 
-\subsection{Example Data}
-We have an example dataset that is currently used to test the system (besides a bunch of dummy files not worthy of discussion), which is in a prototype stage at that point. It takes about 1MB space on disk in a CSV format and has about 18K rows. It is about some electric bill reading data and has multiple numeric fields that can be used to group the entire data by. That is a fairly useful real world example that can later be used to test how the system performs on middle-sized data (i.e. bigger than dummy but easily fits on memory). In the end we want this to be able to seen in a visualization as grouped (or folded) by several fields including (but not limited to) time. 
+We have an example dataset that is currently used to test the system, which is in a prototype stage at that point. It takes about 1MB space on disk in a CSV format and has about 18K rows. It is about some electric bill reading data and has multiple numeric fields that can be used to group the entire data by. That is a fairly useful real world example that can later be used to test how the system performs on middle-sized data (i.e. bigger than dummy but easily fits on memory). In the end we want this to be able to seen in a visualization as grouped or folded by several fields including but not limited to time. 
 
 \section{Background}
 
-\subsection{What is a Tensor?}
+%\subsection{What is a Tensor?}
 
-Performing some groupings and foldings on complex data requires one to understand it's behaviour and structure. For instance, there are several operations that can be performed on time series data. 
+Before visualizing time series data, there is a precalculation work, such as performing some groupings and foldings. To be able to do these operations, first, one should understand data's behaviour and structure by matching it to a definitive structure. Provided with such complex data, it is not possible to store it as a matrix as it's mostly limited to two dimensional data indexed by one of the values. A \textbf{Tensor} is a mathematical structure widely regarded and explained in simple terms as a multidimensional generalization of a matrix\cite{kolda}, where a Matrix is simply a 2-dimensional Tensor. For a purpose such as ours, modelling the data as a \textbf{Tensor} and making our output, the visualized version is a 2-dimensional projection (a \textbf{Matrix}) of the original multidimensional data. 
 
-Provided with such complex data, it is not possible to store it as a matrix as it's mostly limited to two dimensiona data indexed by one of the values. A \textbf{Tensor} is a mathematical structure widely regarded (and explained in simple terms) as a multidimensional generalization of a matrix, where a Matrix is simply a 2-dimensional Tensor. For a purpose such as ours, modelling the data as a \textbf{Tensor} and making our output, the visualized version a 2-dimensional projection (a \textbf{Matrix}) of the original multidimensional data.
+In software packages, tensors are generally represented as n-dimensional arrays or lists. For example, in Python, a typical Matrix is represented as \texttt{[[1, 2, 3], [4, 5, 6], [7, 8, 9]]} whereas a tensor of order 3 can be \texttt{[[[2], [4], [6]], [[10], [6], [5]], [[23], [16], [42]]]}. Numpy and Tensorflow provide complex tensor operations for Python. In C++, Intelligent Tensor(ITensor) is an opensource library to implement tensor product wavefunction calculations\cite{itensor}. In Matlab, the Tensorlab toolbox is used for doing tensor algebra. Maxima, R, Maple and Mathematica systems also offer tensor manipulations, calculations and more complex jobs\cite{kolda}. In this project, we have chosen to go with Python language since we will be implementing a general use visualizer with only using simplest tensor operations.
 
-\subsection{Representation of a Tensor}
+Visualizing tensors is a significant research area by itself, however time series data representation as a tensor puts some constraints to our investigation. In such a data, we want to be able to collapse indices on two of three defined time slices, by hour, by day, and by week. We can regard our data as a Tensor of order 3. Another way to look at it is viewing the structure having the dimensions $N \cdot M \cdot M$ where our original input has $N$ rows of $M$ columns. A common way to represent tensors is using bipartite graphs which is also known as factor graphs. For a data tensor, A, with three indices(i,j,k) such as ours, the factor graph can be shown like this(figure 1).
 
-\subsection{Method of Visualization}
-
-%% - What is a tensor
-%% - Our data and tensor relationship (tensor of rank 2 in R^3) 
-%% - How are the tensors represented? -> bipartite graph(factor graphs)
-%% - Data structures for tensors, how to store sparse tensors
-%% - Visualization 
+\noindent\makebox[\textwidth]{\includegraphics[width=0.3\paperwidth]{factor.jpeg}}
 
 \section{Methods}
 
-%% Our method to represent tensor
-%% Folding tensors, the operations 
-%%  - Summation over an index (collapsing a tensor)
-%%  - Multiplication 
-%% (Implementation)
-%%  - How to upload data 
-%%  - How did we extract the time series data
-%%  - Libraries we use ... 
-
-%%%%%% \section{Analysis}
-
-\subsection {Prototype Implementation}
-
-%% Graphs, outputs (haftaya haftasonu yapilabilir)
-
 So, after all, to successfully visualize the data we have and make somewhat usable project out of it, we need to implement what we learned into a usable program. In the current day and age, the most widely-usable platform where our implementation can be used as easily as possible, plus considering that mobile users aren't our target, the web is the obvious option as the platform of choice. Not to mention that we are both familiar with the development environment from our previous experiences both within and outside of school.
 
-\section {Conclusion} 
+Until now, we have implemented a prototype backend for our most important functions. Flask web framework in Python is a good choice with it's simple use and efficient power\cite{flask}. The current API for our project currently supports .xls and .csv data files and provides several grouping operations. After extracting the time data with other fields, one can group data on a chosen field and perform either simple math operations, summation, production, finding minimum and maximum or one can reach the length of that group or id. 
+
+For the frontend, especially the visualizing part, we are checking the possible graphs from D3js\cite{d3}. The most probable way to demonstrate the weights on the 2 dimensional space is to use heatmaps. A heatmap of a time-series data can be constructed like this;
+
+\noindent\makebox[\textwidth]{\includegraphics[width=0.6\paperwidth]{heatmap.jpeg}}
+
+\section {Conclusion and Future Work} 
 
 In the end, we were able to have an idea about what we are visualizing and why. We also made some critical decisions about the future of the project and some paths we needed to take. And we built a proof-of-concept implementation, even if this one likely isn't going to be the exact basis of the final implementation due to its inefficiencies; it's a pretty good starting point and a reference point.
 
-In the (near) future, we mainly aim to improve our currently-prototype implementation, using the methods we mentioned above, as well as providing some way to generate data to complete the uploaded series if it has some missing data (possibly with machine learning-related methods)
-%% Simdiye kadar bunlari yaptik, 
-%% Future work 
+In the (near) future, we mainly aim to improve our currently-prototype implementation, using the methods we mentioned above, as well as providing some way to generate data to complete the uploaded series if it has some missing data. To accomplish this, we consider of searching ways to represent sparse data and try to find out how to fill these sparse points possibly with machine learning-related methods. Before this of course, we will focus on prototype API with supporting it with D3.js heatmap graphs and tensor functionality buttons. 
+
+
+\newpage 
+
+\begin{thebibliography}{9}
+
+\bibitem{kolda}
+  Kolda T.G., Bader B.W.,
+  \emph{Tensor Decompositions and Applications},
+  SIAM Review,
+  Vol. 51, No. 3, pp.455-500,
+  2009.
+
+\bibitem{itensor}
+  Stoudenmire E.M., White S.R.,
+  \emph{Intelligent Tensor Software Library for c++},
+  itensor.org.
+  
+ \bibitem{d3}
+    Bostock M.,
+    \emph{Data Driven Documents for Javascript},
+    d3js.org.
+    
+ \bibitem{flask}
+    Ronacker A.,
+    \emph{Flask Microframework for Python},
+    http://flask.pocoo.org.
+
+\end{thebibliography}
 
 \end{document}
