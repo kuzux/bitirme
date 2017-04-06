@@ -154,6 +154,19 @@ def group_data_time(data, interval, operation):
         else:
             last_group = res[-1][0][0]
 
+        intervals = { 
+            'month': datetime.timedelta(days=30),
+            'week': datetime.timedelta(days=7),
+            'day': datetime.timedelta(days=1),
+            'hour': datetime.timedelta(hours=1)
+        }
+
+        if (d - last_group) <= intervals[interval]:
+            res[-1].append(elem)
+        else:
+            res.append([elem])
+
+            # todo: do the mappers thing
     return res
 
 app.run(debug=True, port=int(os.environ['PORT']))
