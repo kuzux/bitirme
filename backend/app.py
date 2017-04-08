@@ -7,6 +7,7 @@ import datetime
 import csv
 import os
 import codecs
+import collections
 
 app = Flask(__name__)
 decoder = codecs.getreader('utf-8')
@@ -20,8 +21,7 @@ def index():
 def hello():
     return "Hello 492"
 
-
-data = []
+global data
 
 @app.route('/group-by/<field>')
 def group_by_list(field):
@@ -83,15 +83,19 @@ def upload():
     global data
     data = []
 
+    print("geldi")
+
     file = request.files['file']
-    
-    try:
-        res = json.load(decoder(file))
-        global data
-        data = res
-        return json.dumps({"status": "ok"})
-    except ValueError:
-        return json.dumps({"status": "error", "error": "JSON parsing error"})
+
+    print("napti")
+
+    if file :
+        try:
+            res = json.load(decoder(file))
+            data = res
+            return json.dumps({"status": "ok"})
+        except ValueError:
+            return json.dumps({"status": "error", "error": "JSON parsing error"})
 
 @app.route('/upload/csv', methods=["POST"])
 def upload_csv():
@@ -166,7 +170,79 @@ def group_data_time(data, interval, operation):
         else:
             res.append([elem])
 
-            # todo: do the mappers thing
+        # todo: do the mappers thing
+        
     return res
 
-app.run(debug=True, port=int(os.environ['PORT']))
+tens = []
+
+@app.route('/yap')
+def tensoryap():
+    #tens = []
+
+    for elem in data:
+        d = datetime.datetime.fromtimestamp(elem['date'])
+        month = datetime.datetime(d.year, d.month, 1)
+        week = datetime.datetime(d.year, d.month, d.day)
+        week -= datetime.timedelta(days=d.weekday())
+        day = datetime.datetime(d.year, d.month, d.day)
+        hour = datetime.datetime(d.year, d.month, d.day, d.hour)
+        month = str(month)
+        week = str(week)
+        day = str(day)
+        hour = str(hour)
+        tens.append([month, week, day, hour, elem])
+
+    if tens is None:
+        return json.dumps({"status": "error", "error": "Data processing error"})
+
+    #tens = jsonify(tens)
+    return json.dumps({"status": "ok", "result": tens})
+
+@app.route('/raw-tensor')
+def raw_tensor():
+    return json.dumps(tens)
+
+@app.route('/group-time/<interval>')
+def group_time(interval):
+    res = group_by_time(interval)
+
+    if res is None:
+        return json.dumps({"status": "error", "error": "Data processing error"})
+
+    return json.dumps({"status": "ok", "result": res})    
+
+def group_by_time(interval):
+    groups = {}
+
+    intervals = { 
+        'month': 0,
+        'week': 1,
+        'day': 2,
+        'hour': 3
+    }
+
+    idx = intervals[interval]
+
+    for elem in tens:
+        date = elem[idx]
+        print(date)
+        d = datetime.datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+        if interval == 'month':
+            el = d.month
+        elif interval == 'week':
+            el = datetime.datetime(d.year, d.month, d.day)
+        elif interval == 'day':
+            el = d.day
+        elif interval == 'hour':
+            el = d.hour
+        if str(el) in groups:
+            groups[str(el)].append(elem)
+        else:
+            groups[str(el)] = [elem]
+
+    groups = collections.OrderedDict(sorted(groups.items(), key=lambda t: t[0]))
+
+    return groups
+
+app.run(debug=True)
