@@ -299,9 +299,6 @@ def group_time_operate2(interval1, interval2, operation, op_field):
 
     res = group_by_time_operate2(interval1, interval2, operation, op_field)
 
-    print(res)
-
-
     if res is None:
         return json.dumps({"status": "error", "error": "Data processing error"})
 
@@ -353,12 +350,6 @@ def group_by_time_operate(interval, operation, op_field):
         'length': lambda x: len(x),
         'id': lambda x: x
     }
-
-    #for k, v in groups.items():
-        #print("key: ",k)
-        #for elem in v:
-            #print("value: ", elem)
-            #print("last val: ", elem[op_field])
 
     return { e: mappers[operation](map(lambda x: x[op_field], groups[e])) for e in groups } 
 
@@ -428,12 +419,6 @@ def group_by_time_operate2(interval1, interval2, operation, op_field):
         'length': lambda x: len(x),
         'id': lambda x: x
     }
-
-    #for k, v in groups.items():
-        #print("key: ",k)
-        #for elem in v:
-            #print("value: ", elem)
-            #print("last val: ", elem[op_field])
 
     return { e: { f: mappers[operation](map(lambda x: x[op_field], groups[e][f])) for f in groups[e]} for e in groups } 
 
