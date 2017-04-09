@@ -14,19 +14,19 @@ test call. returns a simple string. might be useful to check whether the service
 
 /group-by/{field}
 
-group by a non-time field returning the folded tensor
+groups by a non-time field returning the folded tensor
 
 /group-by-time/{interval} (OR /group-time/{interval} for LIL representation)
 
-group by the time field specifying an interval
+groups by the time field specifying an interval
 
 /group-time/{interval1}/{interval2} for LIL representation
 
-group by two time fields specifying intervals
+groups by two time fields specifying intervals
 
 /group-by/{field}/{operation}/{op-field} 
 
-group by non-time field performing an operation.
+groups by non-time field performing an operation.
 
 op-field => which field to perform the operation on
 
@@ -42,11 +42,19 @@ returns the aggregated data in a similar format to how it is uploaded.
 
 /group-time/{interval1}/{interval2}/{operation}/{op_field} for LIL representation
 
-group by two time intervals and perform an operation on op_field.
+groups by two time intervals and perform an operation on op_field.
 
 /upload
 
-upload data in a json format. as a list of objects which all have a date column as a unix timestamp
+uploads data in a json format. as a list of objects which all have a date column as a unix timestamp
+
+/upload/csv
+
+uploads data in csv format. 
+
+/upload/csv1
+
+uploads data in csv format, the namefields for data is specified for the trafo example.
 
 /raw
 

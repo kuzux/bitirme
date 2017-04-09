@@ -83,7 +83,7 @@ def upload():
     global data
     data = []
 
-    file = request.files['file']
+    file = request.files['file'] 
 
     if file :
         try:
@@ -100,6 +100,8 @@ def upload_csv():
 
     file = request.files['file']
     read = csv.DictReader(file)
+
+    #TODO: It should be more generic. 
 
     try:
         for row in read:
@@ -122,7 +124,7 @@ def upload_csv1():
         for row in read:
             data.append(row)
 
-        # remove the first data, the one with titles 
+        # removes the first data, the one with titles 
         data.pop(0)
         return json.dumps({"status": "ok"})
     except csv.Error:
@@ -197,8 +199,8 @@ def group_data_time(data, interval, operation):
 tens = []
 
 # If there is a 'date' field in data, which consists of a timestamp, use this.
-@app.route('/yap')
-def tensoryap():
+@app.route('/build')
+def build_tensor():
     #tens = []
 
     for elem in data:
@@ -220,9 +222,9 @@ def tensoryap():
     #tens = jsonify(tens)
     return json.dumps({"status": "ok", "result": tens})
 
-# If there are 2 fields in data: Day and Hour such as in trafo example, build with this.
+# If there are 2 fields in data: Day and Hour such as in trafo example, build with this one.
 @app.route('/build-tensor')
-def build_tensor():
+def build_tensor1():
     for elem in data:
         d = datetime.datetime.strptime(elem['DAY'], '%d-%m-%Y')
         month = datetime.datetime(d.year, d.month, 1)
