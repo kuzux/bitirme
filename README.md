@@ -16,11 +16,11 @@ test call. returns a simple string. might be useful to check whether the service
 
 groups by a non-time field returning the folded tensor
 
-/group-by-time/{interval} (OR /group-time/{interval} for LIL representation)
+/group-by-time/{interval} (OR /group-time/{interval} for COO representation)
 
 groups by the time field specifying an interval
 
-/group-time/{interval1}/{interval2} for LIL representation
+/group-time/{interval1}/{interval2} for COO representation
 
 groups by two time fields specifying intervals
 
@@ -30,7 +30,7 @@ groups by non-time field performing an operation.
 
 op-field => which field to perform the operation on
 
-/group-by-time/{interval}/{operation}/ (OR /group-time/{interval}/{operation}/{op_field} for LIL representation)
+/group-by-time/{interval}/{operation}/ (OR /group-time/{interval}/{operation}/{op_field} for COO representation)
 
 group by time interval performing an operation.
 
@@ -40,7 +40,7 @@ operation => sum, product, min, max, length
 
 returns the aggregated data in a similar format to how it is uploaded.
 
-/group-time/{interval1}/{interval2}/{operation}/{op_field} for LIL representation
+/group-time/{interval1}/{interval2}/{operation}/{op_field} for COO representation
 
 groups by two time intervals and perform an operation on op_field.
 
@@ -62,7 +62,7 @@ returns the uploaded data in a raw json format
 
 /build-tensor
 
-builds a time tensor in list of lists sparse matrix format. (https://en.wikipedia.org/wiki/Sparse_matrix#List_of_lists_.28LIL.29) There must be a timestamp value to be able to use this.
+builds a time tensor in coordinate list sparse matrix format. (https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_.28COO.29) There must be a timestamp value to be able to use this.
 
 /build-tensor1
 

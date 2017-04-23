@@ -10,6 +10,7 @@ import App from './App';
 import './index.css';
 import Home from './Home';
 import NotFound from './NotFound';
+
 const store = createStore(function(p, e){return p;}, {});
 
 ReactDOM.render(

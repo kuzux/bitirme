@@ -195,7 +195,7 @@ def group_data_time(data, interval, operation):
 
 #### TIME TENSOR REPRESENTATION & FOlDINGS ####
 
-# indexed tensor data, held in lil form.(sparse matrix representation)
+# indexed tensor data, held in coo form.(sparse matrix representation)
 tens = []
 
 # If there is a 'date' field in data, which consists of a timestamp, use this.

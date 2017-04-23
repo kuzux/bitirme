@@ -8,7 +8,7 @@ const Header = (props) => {
         <Navbar>
             <Navbar.Header>
                 <Navbar.Brand>
-                   <a href="#">A Multivariate Data Visualization Thing</a>
+                   <a href="#">A Multivariate Time Data Visualization Tool</a>
                 </Navbar.Brand>
             </Navbar.Header>
             <Nav>
