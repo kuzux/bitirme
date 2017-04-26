@@ -40,7 +40,7 @@ const defaults = {
   interpolate: 'basis',
 
   // color range from 'cold' to 'hot'
-  color: ['rgb(0, 180, 240)', 'rgb(243, 42, 100)'],
+  color: ['rgb(0, 180, 240)', 'rgb(243, 42, 55)'],
 
   // color interpolation function
   colorInterpolate: d3.interpolateHcl,
@@ -50,12 +50,6 @@ const defaults = {
 
   // gap size
   gap: 1,
-
-  // bin type: 'circle', 'rect'
-  type: 'rect',
-
-  // axis type: linear, time
-  axisType: 'linear',
 
   // mouseover callback for tooltips or value display
   mouseover: _ => {},
@@ -69,6 +63,17 @@ const defaults = {
  */
 
 const zeroMargin = { top: 0, right: 0, bottom: 0, left: 0 }
+
+/**
+ Tick formats
+ 
+
+const monthDayFormat = d3.time.format('%m.%d')
+const hourFormat = d3.time.format('%H')
+const dayFormat = d3.time.format('%j')
+const timeFormat = d3.time.format('%Y-%m-%dT%X')
+
+*/
 
 /**
  * Heatmap.
@@ -126,14 +131,14 @@ export default class Heatmap {
 			.range([0, w])
 
 		this.y = d3.scaleLinear()
-		  .range([h, 0])
+			.range([h, 0])
 
 		this.opacity = d3.scaleLinear()
-		  .range(opacityRange)
+			.range(opacityRange)
 
 		this.color = d3.scaleLinear()
-		  .range(color)
-		  .interpolate(colorInterpolate)
+			.range(color)
+			.interpolate(colorInterpolate)
 
 		this.xAxis = d3.axisBottom()
 		  .scale(this.x)
@@ -165,14 +170,12 @@ export default class Heatmap {
 
 	prepare(data, options) {
 		const { x, y } = this
-
 		const yMin = d3.min(data, d => d3.min(d.bins, d => d.bin))
 		const yMax = d3.max(data, d => d.bins[d.bins.length-1].bin)
 		const yStep = yMax / data[0].bins.length
 
 		x.domain(d3.extent(data, d => d.bin))
 		y.domain([yMin, yMax + yStep])
-
 		this.yStep = yStep
 	}
 
@@ -187,6 +190,49 @@ export default class Heatmap {
 
 		c.select('.x.axis').call(xAxis)
 		c.select('.y.axis').call(yAxis)
+	}
+
+	/**
+	* Update axis
+	*/
+
+	updateAxis(data, options){
+
+		var tf
+		if(options.tickFormat == 'hour'){
+			this.tickFormat = d3.timeFormat('%H')
+			this.xTicks = 10
+			console.log('hour ticks')
+			tf = 'hour'
+		}else if(options.tickFormat = 'day'){
+			this.tickFormat = d3.timeFormat('%a')
+			this.xTicks = 7
+			console.log('day ticks')
+			tf = 'day'
+		}
+		// month -> %m
+		// week -> %U
+
+		const { chart, xTicks, yTicks,tickSize, tickFormat } = this
+
+		this.xAxis = d3.axisBottom()
+		  .scale(this.x)
+		  .ticks(xTicks)
+		  .tickPadding(8)
+		  .tickSize(tickSize)
+		  .tickFormat(tickFormat)
+
+		this.yAxis = d3.axisLeft()
+		  .scale(this.y)
+		  .ticks(yTicks)
+		  .tickPadding(8)
+		  .tickSize(tickSize)
+		  
+		const c = chart.transition()
+
+		c.select('.x.axis').call(this.xAxis)
+			.append('text').text(tf)
+		c.select('.y.axis').call(this.yAxis)
 	}
 
 	/**
