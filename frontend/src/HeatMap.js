@@ -116,7 +116,7 @@ export default class Heatmap {
 
 	init() {
 		const { target, width, height, margin, axisPadding, interpolate } = this
-		const { axis, tickSize, xTicks, yTicks, axisType, tickFormat } = this
+		const { tickSize, xTicks, yTicks, axisType, tickFormat } = this
 		const { color, colorInterpolate, opacityRange } = this
 
 		const [w, h] = this.dimensions()
@@ -198,41 +198,94 @@ export default class Heatmap {
 
 	updateAxis(data, options){
 
-		var tf
-		if(options.tickFormat == 'hour'){
+		var ticks 
+		if(options.tickFormat === 'hour'){
 			this.tickFormat = d3.timeFormat('%H')
-			this.xTicks = 10
+			ticks = 24
 			console.log('hour ticks')
-			tf = 'hour'
-		}else if(options.tickFormat = 'day'){
+			this.renderBuckets(data, options)
+		}else if(options.tickFormat == 'day'){
 			this.tickFormat = d3.timeFormat('%a')
-			this.xTicks = 7
+			ticks = 7
 			console.log('day ticks')
-			tf = 'day'
+		}else if(options.tickFormat == 'month'){
+			this.tickFormat = d3.timeFormat('%m')
+			ticks = 12
+			console.log('month ticks')
 		}
-		// month -> %m
 		// week -> %U
 
-		const { chart, xTicks, yTicks,tickSize, tickFormat } = this
-
-		this.xAxis = d3.axisBottom()
-		  .scale(this.x)
-		  .ticks(xTicks)
-		  .tickPadding(8)
-		  .tickSize(tickSize)
-		  .tickFormat(tickFormat)
-
-		this.yAxis = d3.axisLeft()
-		  .scale(this.y)
-		  .ticks(yTicks)
-		  .tickPadding(8)
-		  .tickSize(tickSize)
-		  
+		const { chart, tickSize, tickFormat } = this
+		const [_, h] = this.dimensions()
 		const c = chart.transition()
 
-		c.select('.x.axis').call(this.xAxis)
-			.append('text').text(tf)
-		c.select('.y.axis').call(this.yAxis)
+		if(options.axis === 'x'){
+			this.xTicks = ticks
+			this.xAxis = d3.axisBottom()
+				.scale(this.x)
+				.ticks(this.xTicks)
+				.tickPadding(8)
+				.tickSize(tickSize)
+				.tickFormat(tickFormat)
+				c.select('.x.axis').call(this.xAxis)
+		}else{
+			this.y = d3.scaleTime()
+				.range([h, 0])
+			this.yTicks = ticks
+			this.yAxis = d3.axisLeft()
+				.scale(this.y)
+				.ticks(this.yTicks)
+				.tickPadding(8)
+				.tickSize(tickSize)
+				c.select('.y.axis').call(this.yAxis)
+		}
+		
+	}
+
+	/**
+	*	Render columns for visualizing one indexed data.
+	*/
+
+	renderColumns(data){
+		const { chart, x, y, color, opacity, gap, yStep } = this
+		const [w, h] = this.dimensions()
+
+		// max count
+		const zMax = d3.max(data, d => d3.max(d.bins, d => d.count))
+
+		// color domain
+		color.domain([0, zMax])
+		opacity.domain([0, zMax])
+
+		// bin dimensions
+		const bw = (w / data.length)
+		const bh = (h / data[0].bins.length)
+
+		const col = chart.selectAll('.column')
+		  .data(data)
+
+		// enter
+		col.enter().append('g')
+		  .attr('class', 'column')
+
+		const bin = col.selectAll('.bin')
+		  .data(d => d.bins)
+
+		bin.enter().append('rect')
+		  .attr('class', 'bin')
+
+		bin.style('fill', d => color(d.count))
+		  .style('fill-opacity', d => opacity(d.count))
+		  .attr('width', bw - gap)
+		  .attr('height', bh - gap)
+		  .attr('x', 0)
+		  .attr('y', d => y(d.bin + yStep))
+
+		// update
+		col.attr('transform', (d, i) => `translate(${x(d.bin)}, 0)`)
+
+		// exit
+		col.exit().remove()
 	}
 
 	/**
@@ -268,7 +321,6 @@ export default class Heatmap {
 		col.exit().remove()
 
 		this.renderBinRect(col, bw, bh, gap, yStep)
-				
 	}
 
 	/**
