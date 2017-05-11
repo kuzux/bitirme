@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import HeatMap from './HeatMap';
 import UploadForm from './UploadForm';
 
-import { ButtonGroup, Button, FormControl, FormGroup, ControlLabel, HelpBlock } from 'react-bootstrap';
+import { ButtonGroup, Button} from 'react-bootstrap';
 
 const geny = n => {
   const data = []
@@ -60,6 +60,20 @@ class Plot extends React.Component {
 		this.changeData(gen(55, 20))
 	}
 
+	buildTensor = () => {
+		fetch('http://localhost:5000/build',{
+				method: 'GET',
+				mode: 'no-cors'
+			})
+			.then(function(response) {
+				console.log(response.text())
+			}).then(function(json) {
+				console.log('parsed json', json)
+			}).catch(function(err) {
+				console.log('parsing failed', err)
+			})
+	}
+
 	changeData = (e) => {
 		//console.log(e.target.name)
 		this.c.render(gen(55, 20))
@@ -79,7 +93,7 @@ class Plot extends React.Component {
 					hourClicked: false,
 					nClicked: nClicked - 1
 				})
-				if(nClicked-1 ==1) {
+				if(nClicked-1 === 1) {
 					axis = 'x'
 					if(this.state.dayClicked) timeFormat = 'day'
 					if(this.state.monthClicked) timeFormat = 'month'
@@ -100,7 +114,7 @@ class Plot extends React.Component {
 					dayClicked: false,
 					nClicked: nClicked - 1
 				})
-				if(nClicked-1 ==1) {
+				if(nClicked-1 === 1) {
 					axis = 'x'
 					if(this.state.hourClicked) timeFormat = 'hour'
 					if(this.state.monthClicked) timeFormat = 'month'
@@ -121,7 +135,7 @@ class Plot extends React.Component {
 					monthClicked: false,
 					nClicked: nClicked- 1
 				})
-				if(nClicked-1 ==1) {
+				if(nClicked-1 === 1) {
 					axis = 'x'
 					if(this.state.dayClicked) timeFormat = 'day'
 					if(this.state.hourClicked) timeFormat = 'hour'
@@ -151,6 +165,7 @@ class Plot extends React.Component {
 				<UploadForm data={this.props.data} />
 			</div>
 
+			<Button name='build' bsStyle="primary" onClick={this.buildTensor}>Build Tensor</Button>
 			<Button name='update' bsStyle="primary" onClick={this.changeData}>Update</Button>
 
 			<ButtonGroup>

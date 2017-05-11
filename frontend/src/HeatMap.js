@@ -115,8 +115,8 @@ export default class Heatmap {
 	*/
 
 	init() {
-		const { target, width, height, margin, axisPadding, interpolate } = this
-		const { tickSize, xTicks, yTicks, axisType, tickFormat } = this
+		const { target, width, height, margin, axisPadding } = this
+		const { tickSize, xTicks, yTicks,  tickFormat } = this
 		const { color, colorInterpolate, opacityRange } = this
 
 		const [w, h] = this.dimensions()
@@ -204,11 +204,11 @@ export default class Heatmap {
 			ticks = 24
 			console.log('hour ticks')
 			this.renderBuckets(data, options)
-		}else if(options.tickFormat == 'day'){
+		}else if(options.tickFormat === 'day'){
 			this.tickFormat = d3.timeFormat('%a')
 			ticks = 7
 			console.log('day ticks')
-		}else if(options.tickFormat == 'month'){
+		}else if(options.tickFormat === 'month'){
 			this.tickFormat = d3.timeFormat('%m')
 			ticks = 12
 			console.log('month ticks')
@@ -293,7 +293,7 @@ export default class Heatmap {
 	*/
 
 	renderBuckets(data) {
-		const { chart, x, y, color, opacity, gap, yStep } = this
+		const { chart, x, color, opacity, gap, yStep } = this
 		const [w, h] = this.dimensions()
 
 		// max count
