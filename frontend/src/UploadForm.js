@@ -19,8 +19,10 @@ class UploadForm extends React.Component {
 			case 'json':
 				fetch('http://localhost:5000/upload',{
 					method: 'POST',
-  					body: formData,
-					mode: 'no-cors'
+					header: {
+						'Accept':'application/json'
+					},
+  					body: formData
 				})
 				.then(function(response){
 					console.log(response.ok)
@@ -32,8 +34,10 @@ class UploadForm extends React.Component {
 			case 'csv':
 				fetch('http://localhost:5000/upload/csv1',{
 					method: 'POST',
-  					body: formData,
-					mode: 'no-cors'
+					headers:{ 
+						'Accept': 'application/json; charset=utf-8'     		
+					},
+  					body: formData
 				})
 				.then(function(response){
 					console.log(response.ok)

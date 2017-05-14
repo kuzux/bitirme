@@ -14,7 +14,6 @@ const geny = n => {
       count: Math.random() * (25 * (n - i))
     })
   }
-
   return data
 }
 
@@ -44,40 +43,53 @@ class Plot extends React.Component {
 			bs2: "primary",
 			bs3: "primary",
 			nClicked : 0,
+			data: "",
 		};
+  		console.log("constructed")
 	}
 
   	componentDidMount() {
+  		console.log("did mount")
 		this.c = new HeatMap({
 			target: this.refs.c,
 			width: 800,
 			height: 400
 		})
-		this.changeData(gen(55, 20)) 
+		this.setState({data: gen(55,20)})
+		this.changeData(this.state.data) 
 	}
 
 	componentDidUpdate() {
-		this.changeData(gen(55, 20))
+  		console.log("did update")
+		this.setState({data: gen(55,20)})
+		this.changeData(this.state.data) 
 	}
 
 	buildTensor = () => {
-		fetch('http://localhost:5000/build',{
-				method: 'GET',
-				mode: 'no-cors'
+		fetch('http://localhost:5000/build-tensor',{
+				method: 'GET'
 			})
 			.then(function(response) {
-				console.log(response.text())
-			}).then(function(json) {
-				console.log('parsed json', json)
-			}).catch(function(err) {
-				console.log('parsing failed', err)
-			})
+				response.text().then(function(json) {
+					console.log('parsed json', JSON.parse(json))
+					this.changeData(JSON.parse(json).result)
+				}).catch(function(err) {
+					console.log('parsing failed', err)
+				});
+			});
 	}
 
-	changeData = (e) => {
-		//console.log(e.target.name)
-		this.c.render(gen(55, 20))
+	changeData(data){
+
+  		console.log("change data")
+		this.c.render(data)
 	}
+/*
+	changeData = (data) => {
+		//console.log(e.target.name)
+		console.log(data)
+		this.c.render(data)
+	} */
 
 	changeAxis = (e) => {
 		const button = e.target.name
@@ -166,7 +178,7 @@ class Plot extends React.Component {
 			</div>
 
 			<Button name='build' bsStyle="primary" onClick={this.buildTensor}>Build Tensor</Button>
-			<Button name='update' bsStyle="primary" onClick={this.changeData}>Update</Button>
+			<Button name='update' bsStyle="primary" onClick={ () => {this.changeData(this.state.data)} }>Update</Button>
 
 			<ButtonGroup>
 				<Button name='hour' bsStyle={this.state.bs1} onClick={this.changeAxis}>Hour</Button>

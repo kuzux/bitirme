@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 from flask import Flask, request
+from flask_cors import CORS
 
 import json
 import datetime
@@ -11,6 +12,7 @@ import collections
 
 app = Flask(__name__)
 decoder = codecs.getreader('utf-8')
+CORS(app)
 
 @app.route('/')
 def index():
@@ -113,8 +115,10 @@ def upload_csv():
 # CSV uploader for the trafo example
 @app.route('/upload/csv1', methods=["POST"])
 def upload_csv1():
+
     fieldnames = ("SAYACNO","TESNO","DAY", "HOUR", "ENDUKTIF", "KAPASITIF", "AKTIF")
-    #global data
+    
+    global data
     data = []
 
     file = request.files['file']
@@ -126,6 +130,8 @@ def upload_csv1():
 
         # removes the first data, the one with titles 
         data.pop(0)
+
+        print(data)
         return json.dumps({"status": "ok"})
     except csv.Error:
         return json.dumps({"status": "error", "error": "CSV parsing error"})

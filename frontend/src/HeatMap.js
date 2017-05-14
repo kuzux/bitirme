@@ -96,7 +96,9 @@ export default class Heatmap {
 	*/
 
 	set(config) {
-		Object.assign(this, defaults, config)
+		Object.assign(this, defaults, config);
+
+
 	}
 
 	/**
@@ -168,8 +170,10 @@ export default class Heatmap {
 	* Prepate domains for subsequent render methods.
 	*/
 
-	prepare(data, options) {
+	prepare(data, options ) {
 		const { x, y } = this
+		//console.log(data[0].bins[0].bin)
+		//console.log("hele")
 		const yMin = d3.min(data, d => d3.min(d.bins, d => d.bin))
 		const yMax = d3.max(data, d => d.bins[d.bins.length-1].bin)
 		const yStep = yMax / data[0].bins.length
