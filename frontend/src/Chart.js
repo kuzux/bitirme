@@ -26,8 +26,45 @@ const gen = (x, y) => {
       bins: geny(y)
     })
   }
-
   return data
+}
+
+const getdata = (int1, int2, op, op_field) => {
+	// serverdan cek
+	// geny usulu row bak
+	// iki input al: intervals = ['hour', 'day', 'week', 'month']
+	// channel inputu al (aktif, kapasitif, enduktif vs)
+
+	const data = []
+
+	let query = 'http://localhost:5000/group-time/'+int1+'/'+int2+'/'+op+'/'+op_field
+
+	fetch(query,{
+			method: 'GET'
+		})
+		.then(function(response) {
+			response.text().then(function(json) {
+				console.log('parsed json', JSON.parse(json))
+				// data = json.load(data_file)
+				let parsed = JSON.parse(json);
+				for (let key in parsed.result) {
+					let y = [];
+					for(let subkey in parsed.result[key]) {
+						y.push({
+							bin: subkey,
+							count: parsed.result[key][subkey]
+						});
+				    }
+				    data.push({
+				      bin: key,
+				      bins: y
+				    })
+				}
+			}).catch(function(err) {
+				console.log('parsing failed', err)
+			});
+		});
+	return data;
 }
 
 class Plot extends React.Component {
@@ -44,6 +81,8 @@ class Plot extends React.Component {
 			bs3: "primary",
 			nClicked : 0,
 			data: "",
+			xTime: "",
+			yTime: ""
 		};
   		console.log("constructed")
 	}
@@ -55,13 +94,17 @@ class Plot extends React.Component {
 			width: 800,
 			height: 400
 		})
-		this.setState({data: gen(55,20)})
+		this.setState({
+			data: getdata('hour', 'day', 'sum', 'AKTIF'),
+			xTime: "hour", 
+			yTime: "day"
+		})
 		this.changeData(this.state.data) 
 	}
 
 	componentDidUpdate() {
   		console.log("did update")
-		this.setState({data: gen(55,20)})
+		//this.setState({data: gen(55,20)})
 		this.changeData(this.state.data) 
 	}
 
@@ -69,20 +112,22 @@ class Plot extends React.Component {
 		fetch('http://localhost:5000/build-tensor',{
 				method: 'GET'
 			})
-			.then(function(response) {
-				response.text().then(function(json) {
+			.then((response) => {
+				response.text().then((json) => {
 					console.log('parsed json', JSON.parse(json))
 					this.changeData(JSON.parse(json).result)
-				}).catch(function(err) {
+				}).catch((err) => {
 					console.log('parsing failed', err)
 				});
 			});
 	}
 
 	changeData(data){
-
   		console.log("change data")
-		this.c.render(data)
+		this.c.render(data, {
+			xTime: this.state.xTime,
+			yYime: this.state.yTime
+		})
 	}
 /*
 	changeData = (data) => {

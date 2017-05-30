@@ -46,10 +46,12 @@ const defaults = {
   colorInterpolate: d3.interpolateHcl,
 
   // opacity range for the domain 0-N
-  opacityRange: [0.10, 1],
+  opacityRange: [0.5, 1],
 
   // gap size
   gap: 1,
+
+  minC: 0,
 
   // mouseover callback for tooltips or value display
   mouseover: _ => {},
@@ -97,8 +99,6 @@ export default class Heatmap {
 
 	set(config) {
 		Object.assign(this, defaults, config);
-
-
 	}
 
 	/**
@@ -177,10 +177,30 @@ export default class Heatmap {
 		const yMin = d3.min(data, d => d3.min(d.bins, d => d.bin))
 		const yMax = d3.max(data, d => d.bins[d.bins.length-1].bin)
 		const yStep = yMax / data[0].bins.length
+		this.minC = d3.min(data, d=> d3.min(d.bins, d => d.count))
 
 		x.domain(d3.extent(data, d => d.bin))
 		y.domain([yMin, yMax + yStep])
 		this.yStep = yStep
+	}
+
+	tickCount(type){
+		var ticks, tickFormat
+		if(type === 'hour'){
+			tickFormat = d3.timeFormat('%H')
+			ticks = 24
+			console.log('hour ticks')
+		}else if(type === 'day'){
+			tickFormat = d3.timeFormat('%a')
+			ticks = 7
+			console.log('day ticks')
+		}else if(type === 'month'){
+			tickFormat = d3.timeFormat('%m')
+			ticks = 12
+			console.log('month ticks')
+		}
+		// week -> %U
+		return [ticks, tickFormat]
 	}
 
 	/**
@@ -188,7 +208,26 @@ export default class Heatmap {
 	*/
 
 	renderAxis(data, options) {
-		const { chart, xAxis, yAxis } = this
+		const { chart, xAxis, yAxis, xTicks, yTicks } = this
+
+		let xTick = this.tickCount(options.xTime)
+		this.xTicks = xTick[0]
+		let xTickFormat = xTick[1]
+
+		let yTick = this.tickCount(options.yTime)
+		this.yTicks = yTick[0]
+		let yTickFormat = yTick[1]
+
+		this.xAxis = d3.axisBottom()
+		  .scale(this.x)
+		  .ticks(xTicks)
+		  .tickFormat(xTickFormat)
+
+		this.yAxis = d3.axisLeft()
+		  .scale(this.y)
+		  .ticks(yTicks)
+		  .tickFormat(yTickFormat)
+
 
 		const c = options.animate ? chart.transition() : chart
 
@@ -247,57 +286,11 @@ export default class Heatmap {
 	}
 
 	/**
-	*	Render columns for visualizing one indexed data.
-	*/
-
-	renderColumns(data){
-		const { chart, x, y, color, opacity, gap, yStep } = this
-		const [w, h] = this.dimensions()
-
-		// max count
-		const zMax = d3.max(data, d => d3.max(d.bins, d => d.count))
-
-		// color domain
-		color.domain([0, zMax])
-		opacity.domain([0, zMax])
-
-		// bin dimensions
-		const bw = (w / data.length)
-		const bh = (h / data[0].bins.length)
-
-		const col = chart.selectAll('.column')
-		  .data(data)
-
-		// enter
-		col.enter().append('g')
-		  .attr('class', 'column')
-
-		const bin = col.selectAll('.bin')
-		  .data(d => d.bins)
-
-		bin.enter().append('rect')
-		  .attr('class', 'bin')
-
-		bin.style('fill', d => color(d.count))
-		  .style('fill-opacity', d => opacity(d.count))
-		  .attr('width', bw - gap)
-		  .attr('height', bh - gap)
-		  .attr('x', 0)
-		  .attr('y', d => y(d.bin + yStep))
-
-		// update
-		col.attr('transform', (d, i) => `translate(${x(d.bin)}, 0)`)
-
-		// exit
-		col.exit().remove()
-	}
-
-	/**
 	* Render bins.
 	*/
 
 	renderBuckets(data) {
-		const { chart, x, color, opacity, gap, yStep } = this
+		const { chart, color, opacity, gap, yStep } = this
 		const [w, h] = this.dimensions()
 
 		// max count
@@ -307,9 +300,13 @@ export default class Heatmap {
 		color.domain([0, zMax])
 		opacity.domain([0, zMax])
 
+		console.log("total width " + w)
+
 		// bin dimensions
 		const bw = (w / data.length)
 		const bh = (h / data[0].bins.length)
+
+		console.log("bin width " + bw)
 
 		const col = chart.selectAll('.column')
 		  .data(data)
@@ -319,7 +316,7 @@ export default class Heatmap {
 		  .attr('class', 'column')
 
 		// update
-		col.attr('transform', (d, i) => `translate(${x(d.bin)}, 0)`)
+		col.attr('transform', (d, i) => `translate(${i*bw}, 0)`)
 
 		// exit
 		col.exit().remove()
@@ -332,7 +329,7 @@ export default class Heatmap {
 	*/
 
 	renderBinRect(col, bw, bh, gap, yStep) {
-		const { opacity, color, y, mouseover, mouseout } = this
+		const { opacity, color, y, minC, mouseover, mouseout } = this
 
 		const bin = col.selectAll('.bin')
 		  .data(d => d.bins)
@@ -341,9 +338,11 @@ export default class Heatmap {
 		bin.enter().append('rect')
 		  .attr('class', 'bin')
 
+		console.log("ymin " + minC)
+
 		// update
-		bin.style('fill', d => color(d.count))
-		  .style('fill-opacity', d => opacity(d.count))
+		bin.style('fill', d => color(d.count-minC))
+		  .style('fill-opacity', d => opacity(d.count-minC))
 		  .attr('width', bw - gap)
 		  .attr('height', bh - gap)
 		  .attr('x', 0)
@@ -369,10 +368,11 @@ export default class Heatmap {
 	*
 	*/
 
-	render(data, options = {}) {
+	render(data, options) {
 		const { axis } = this
 		this.prepare(data, options)
 		if (axis) this.renderAxis(data, options)
+		console.log(data)
 		this.renderBuckets(data, options)
 	}
 

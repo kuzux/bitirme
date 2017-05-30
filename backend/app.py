@@ -284,6 +284,7 @@ def group_time_operate(interval, operation, op_field):
 
 @app.route('/group-time/<interval1>/<interval2>')
 def group_time2(interval1, interval2):
+    intervals = ['hour', 'day', 'week', 'month']
     res = group_by_time2(interval1, interval2)
 
     if res is None:
@@ -359,9 +360,9 @@ def group_by_time_operate(interval, operation, op_field):
         'id': lambda x: x
     }
 
-    return { e: mappers[operation](map(lambda x: x[op_field], groups[e])) for e in groups } 
+    return { e: mappers[operation](map(lambda x: float(x[op_field]), groups[e])) for e in groups } 
 
-# Groups by 1 indices of a time tensor.
+# Groups by 2 indices of a time tensor.
 def group_by_time2(interval1, interval2):
     groups = {}
 
@@ -428,6 +429,6 @@ def group_by_time_operate2(interval1, interval2, operation, op_field):
         'id': lambda x: x
     }
 
-    return { e: { f: mappers[operation](map(lambda x: x[op_field], groups[e][f])) for f in groups[e]} for e in groups } 
+    return { e: { f: mappers[operation](map(lambda x: float(x[op_field]), groups[e][f])) for f in groups[e]} for e in groups } 
 
 app.run(debug=True)
