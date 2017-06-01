@@ -54,7 +54,7 @@ class UploadForm extends React.Component {
 
 	render(){
 		return(
-	    	<form onSubmit={this.upload.bind(this)} >
+	    	<form onSubmit={this.upload.bind(this)} encType="multipart/form-data" >
 				<FormGroup controlId="formControlsFile">
 					<ControlLabel>File</ControlLabel>
 					<FormControl type="file" inputRef={ref => { this.input = ref; }}/>

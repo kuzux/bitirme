@@ -5,30 +5,6 @@ import UploadForm from './UploadForm';
 
 import { ButtonGroup, Button} from 'react-bootstrap';
 
-const geny = n => {
-  const data = []
-
-  for (var i = 0; i < n; i++) {
-    data.push({
-      bin: i * 150,
-      count: Math.random() * (25 * (n - i))
-    })
-  }
-  return data
-}
-
-const gen = (x, y) => {
-  const data = []
-
-  for (var i = 0; i < x; i++) {
-    data.push({
-      bin: i,
-      bins: geny(y)
-    })
-  }
-  return data
-}
-
 const getdata = (int1, int2, op, op_field) => {
 	// serverdan cek
 	// geny usulu row bak
@@ -36,35 +12,57 @@ const getdata = (int1, int2, op, op_field) => {
 	// channel inputu al (aktif, kapasitif, enduktif vs)
 
 	const data = []
+	let query
 
-	let query = 'http://localhost:5000/group-time/'+int1+'/'+int2+'/'+op+'/'+op_field
+	// iki index varsa :
+	if (int1 != null && int2 != null) query = 'http://localhost:5000/group-time/'+int1+'/'+int2+'/'+op+'/'+op_field
+
+	// tek index varsa:
+	if(int1 == null) query = 'http://localhost:5000/group-time/'+int2+'/'+op+'/'+op_field
+	if(int2 == null) query = 'http://localhost:5000/group-time/'+int1+'/'+op+'/'+op_field
+	
+	// hicbir buton yoksa
+	if(int1 == null && int2 == null) return "";
+
+	console.log("query: ",query)	
 
 	fetch(query,{
 			method: 'GET'
 		})
 		.then(function(response) {
 			response.text().then(function(json) {
-				console.log('parsed json', JSON.parse(json))
+				//console.log('parsed json he', JSON.parse(json))
 				// data = json.load(data_file)
 				let parsed = JSON.parse(json);
 				for (let key in parsed.result) {
-					let y = [];
-					for(let subkey in parsed.result[key]) {
-						y.push({
-							bin: subkey,
-							count: parsed.result[key][subkey]
-						});
-				    }
+					let y;
+					if (int1 != null && int2 != null){
+						y = [];
+						for(let subkey in parsed.result[key]) {
+							y.push({
+								bin: subkey,
+								count: parsed.result[key][subkey]
+							});
+					    }
+					}else{
+						y = parsed.result[key]
+					}
+					//console.log("parseladi")
 				    data.push({
 				      bin: key,
 				      bins: y
 				    })
 				}
 			}).catch(function(err) {
-				console.log('parsing failed', err)
+				console.log(' get parsing failed', err)
 			});
 		});
 	return data;
+}
+
+const buttonStyle = { false: "primary", true: "info" };
+const buttonClicked = (x, y, b) => { 
+	return (x === b || y === b)? true : false;
 }
 
 class Plot extends React.Component {
@@ -72,39 +70,29 @@ class Plot extends React.Component {
 	constructor(props){
 		super(props)
 		this.state = {
-			timeFormat: 'h',
-			hourClicked: false,
-			dayClicked: false,
-			monthClicked: false,
-			bs1: "primary",
-			bs2: "primary",
-			bs3: "primary",
-			nClicked : 0,
 			data: "",
-			xTime: "",
-			yTime: ""
+			x: "hour",
+			y: "day"
 		};
-  		console.log("constructed")
+		//console.log(buttonStyle[buttonClicked(this.state.x, this.state.y, 'hour')])
+  		//console.log("constructed")
 	}
 
   	componentDidMount() {
-  		console.log("did mount")
+  		//console.log("did mount")
 		this.c = new HeatMap({
 			target: this.refs.c,
 			width: 800,
 			height: 400
 		})
 		this.setState({
-			data: getdata('hour', 'day', 'sum', 'AKTIF'),
-			xTime: "hour", 
-			yTime: "day"
+			data: getdata(this.state.x, this.state.y, 'sum', 'AKTIF'),
 		})
 		this.changeData(this.state.data) 
 	}
 
 	componentDidUpdate() {
-  		console.log("did update")
-		//this.setState({data: gen(55,20)})
+  		//console.log("did update")
 		this.changeData(this.state.data) 
 	}
 
@@ -114,106 +102,53 @@ class Plot extends React.Component {
 			})
 			.then((response) => {
 				response.text().then((json) => {
-					console.log('parsed json', JSON.parse(json))
+					//console.log('parsed json', JSON.parse(json))
 					this.changeData(JSON.parse(json).result)
 				}).catch((err) => {
-					console.log('parsing failed', err)
+					console.log('parsing failed in build tensor', err)
 				});
 			});
 	}
 
-	changeData(data){
-  		console.log("change data")
-		this.c.render(data, {
-			xTime: this.state.xTime,
-			yYime: this.state.yTime
+	changeData(){
+  		//console.log("change data")
+  		console.log("change data: ", this.state.data)
+		this.c.render(this.state.data, {
+			x: this.state.x,
+			y: this.state.y
 		})
 	}
-/*
-	changeData = (data) => {
-		//console.log(e.target.name)
-		console.log(data)
-		this.c.render(data)
-	} */
 
 	changeAxis = (e) => {
-		const button = e.target.name
-		var nClicked = this.state.nClicked
-		var axis, timeFormat
-		console.log('degismeden once:')
-		console.log(this.state.hourClicked, this.state.dayClicked, this.state.monthClicked)
-		console.log(this.state.nClicked)
-		if(button === 'hour'){
-			if(this.state.hourClicked){
-				this.setState({
-					bs1: "primary",
-					hourClicked: false,
-					nClicked: nClicked - 1
-				})
-				if(nClicked-1 === 1) {
-					axis = 'x'
-					if(this.state.dayClicked) timeFormat = 'day'
-					if(this.state.monthClicked) timeFormat = 'month'
-				}
-			} else {
-				this.setState({
-					bs1: "info",
-					hourClicked: true,
-					nClicked: nClicked+1
-				})
-				timeFormat = 'hour'
-				axis = nClicked>0 ? 'y' : 'x'
-			}
-		}else if(button === 'day'){
-			if(this.state.dayClicked){
-				this.setState({
-					bs2: "primary",
-					dayClicked: false,
-					nClicked: nClicked - 1
-				})
-				if(nClicked-1 === 1) {
-					axis = 'x'
-					if(this.state.hourClicked) timeFormat = 'hour'
-					if(this.state.monthClicked) timeFormat = 'month'
-				}
-			} else {
-				this.setState({
-					bs2: "info",
-					dayClicked: true,
-					nClicked: nClicked + 1
-				})
-				timeFormat = 'day'
-				axis = nClicked>0 ? 'y' : 'x'
-			}
-		}else if(button === 'month'){
-			if(this.state.monthClicked){
-				this.setState({
-					bs3: "primary",
-					monthClicked: false,
-					nClicked: nClicked- 1
-				})
-				if(nClicked-1 === 1) {
-					axis = 'x'
-					if(this.state.dayClicked) timeFormat = 'day'
-					if(this.state.hourClicked) timeFormat = 'hour'
-				}
-			} else {
-				this.setState({
-					bs3: "info",
-					monthClicked: true,
-					nClicked: nClicked + 1
-				})
-				timeFormat = 'month'
-				axis = nClicked>0 ? 'y' : 'x'
+		let button = e.target.name
+		let x = this.state.x
+		let y = this.state.y
+		
+		if ( x === button ) {
+			x = y;
+			y = null;
+		}else if ( y === button ) {
+			y = null;
+		}else{
+			if( x === null ){
+				x = button;
+			}else if( y === null ){
+				y = button;
+			}else{
+				// 3.butona basmasina izin vermiyoz, degistirmeden cik, returnle
+				return;
 			}
 		}
 
-		console.log('degisti:', axis, timeFormat)
-
-		this.c.updateAxis(gen(55, 20),{
-			axis: axis,
-			tickFormat: timeFormat
+		console.log("button clicked")
+		console.log('x: ',x , " y: ", y)
+		this.setState({
+			data: getdata(x, y, 'sum', "AKTIF"),
+			x: x,
+			y: y
 		})
+		
+		this.changeData()
 	}
 
 	render() {
@@ -226,9 +161,9 @@ class Plot extends React.Component {
 			<Button name='update' bsStyle="primary" onClick={ () => {this.changeData(this.state.data)} }>Update</Button>
 
 			<ButtonGroup>
-				<Button name='hour' bsStyle={this.state.bs1} onClick={this.changeAxis}>Hour</Button>
-				<Button name='day' bsStyle={this.state.bs2} onClick={this.changeAxis}>Day</Button>
-				<Button name='month' bsStyle={this.state.bs3} onClick={this.changeAxis}>Month</Button>
+				<Button name='hour' bsStyle={buttonStyle[buttonClicked(this.state.x, this.state.y, 'hour')]} onClick={this.changeAxis}>Hour</Button>
+				<Button name='day' bsStyle={buttonStyle[buttonClicked(this.state.x, this.state.y, 'day')]} onClick={this.changeAxis}>Day</Button>
+				<Button name='month' bsStyle={buttonStyle[buttonClicked(this.state.x, this.state.y, 'month')]} onClick={this.changeAxis}>Month</Button>
 			</ButtonGroup>
 
 			<section>

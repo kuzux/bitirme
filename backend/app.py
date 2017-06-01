@@ -9,6 +9,7 @@ import csv
 import os
 import codecs
 import collections
+from gevent.wsgi import WSGIServer
 
 app = Flask(__name__)
 decoder = codecs.getreader('utf-8')
@@ -335,7 +336,7 @@ def group_by_time(interval):
         elif interval == 'week':
             el = datetime.datetime(d.year, d.month, d.day)
         elif interval == 'day':
-            el = d.day
+            el = d.weekday()
         elif interval == 'hour':
             el = d.hour
         if str(el) in groups:
@@ -385,7 +386,7 @@ def group_by_time2(interval1, interval2):
         elif interval1 == 'week':
             el1 = datetime.datetime(d1.year, d1.month, d1.day)
         elif interval1 == 'day':
-            el1 = d1.day
+            el1 = d1.weekday()
         elif interval1 == 'hour':
             el1 = d1.hour
 
@@ -396,9 +397,9 @@ def group_by_time2(interval1, interval2):
         elif interval2 == 'week':
             el2 = datetime.datetime(d2.year, d2.month, d2.day)
         elif interval2 == 'day':
-            el2 = d1.day
+            el2 = d2.weekday()
         elif interval2 == 'hour':
-            el2 = d1.hour
+            el2 = d2.hour
 
         k1 = str(el1)
         k2 = str(el2)
@@ -431,4 +432,4 @@ def group_by_time_operate2(interval1, interval2, operation, op_field):
 
     return { e: { f: mappers[operation](map(lambda x: float(x[op_field]), groups[e][f])) for f in groups[e]} for e in groups } 
 
-app.run(debug=True)
+app.run(debug=True, threaded = True)
