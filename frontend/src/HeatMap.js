@@ -25,22 +25,31 @@ const defaults = {
 
   minC: 0,
 
+  ydMax: 1,
+
+  ydMin: 0,
+
   // mouseover callback for tooltips or value display
-  mouseover: _ => {},
+  mouseover: _ => {
+  	
+  },
 
   // mouseout callback for tooltips or value display
-  mouseout: _ => {}
+  mouseout: _ => {
+  	
+  }
 }
+
+const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const hours = ["00", "02", "04", "06", "08", "10", "12", "14", "16", "18", "20", "22", "00"];
+const tickMap = {"hour": hours , "month": months, "day": days};
 
 export default class Heatmap {
 
 	constructor(config) {
-		this.set(config)
-		this.init()
-	}
-
-	set(config) {
 		Object.assign(this, defaults, config);
+		this.init();
 	}
 
 	dimensions() {
@@ -62,10 +71,10 @@ export default class Heatmap {
 		  .append('g')
 		    .attr('transform', `translate(${margin.left}, ${margin.top})`)
 
-		this.x = d3.scaleLinear()
+		this.x = d3.scaleTime()
 			.range([0, w])
 
-		this.y = d3.scaleLinear()
+		this.y = d3.scaleTime()
 			.range([h, 0])
 
 		//this.y = d3.scaleTime()
@@ -80,7 +89,7 @@ export default class Heatmap {
 
 		this.xAxis = d3.axisBottom()
 		  .scale(this.x)
-		  .tickPadding(8)
+		  .tickPadding(10)
 		  .tickFormat(d3.timeFormat('%H'))
 
 		this.yAxis = d3.axisLeft()
@@ -97,92 +106,98 @@ export default class Heatmap {
 		  .attr('class', 'y axis')
 		  .attr('transform', `translate(${-axisPadding}, 0)`)
 		  .call(this.yAxis)
+
+		this.chart.append('text') // x axis label
+			.attr('class', 'x label')
+			.attr("x", w/2)
+			.attr("y", h+margin.bottom-2)
+			.style("text-anchor", "middle")
+			.text("Hour")
+
+		this.chart.append('text')
+			.attr('class', 'y label')
+			.attr('transform', 'rotate(-90)')
+			.attr("x", 0 - h/2 )
+			.attr("y", 0 - margin.left)
+			.attr("dy", "1em")
+			.style("text-anchor", "middle")
+			.text("Day")
 	}
 
 	prepare(data, options ) {
-		const { x, y } = this
-		//console.log(data[0].bins[0].bin)
-		//console.log("hele")
-		const ydMin = d3.min(data, d => d3.min(d.bins, d => d.bin))
-		const ydMax = d3.max(data, d => d3.max(d.bins, d => d.bin))
-		const yStep = ydMax / (ydMax - ydMin + 1)
+		console.log("prepare: ")
+
+		const { x, y} = this
 		this.minC = d3.min(data, d=> d3.min(d.bins, d => d.count))
 
-		const xMin = d3.min(data, d=> d.bin)
-		const xMax = d3.max(data, d=> d.bin)
+		//const xMin = d3.min(data, d=> d.bin)
+		//const xMax = d3.max(data, d=> d.bin)
+		let ymin = 0;
+		let ymax = 1;
 
-		//for(var i in data){
+		if(options.yTime != null){
+			ymin = parseInt(data[0].bins[0].bin, 10)
+			ymax = parseInt(data[0].bins[0].bin, 10)
 
-			//console.log(data[i].bin)
-		//}
+			//console.log("y: ", ymin, " ", ymax)
+			//console.log(data.length, " ", data[0].bins.length)
 
-		//console.log("Data: ", data[10].bin)
-		//console.log(xMin, " ", xMax)
-		x.domain(d3.extent(data, d => d.bin))
-		y.domain([ydMin-1, ydMax])
-		this.yStep = yStep;
-		this.ydMax = ydMax;
-		this.ydMin = ydMin;
-	}
-
-	tickCount(type){
-		var ticks, tickFormat
-		if(type === 'hour'){
-			tickFormat = d3.timeFormat('%H')
-			//ticks = 24
-			//console.log('hour ticks')
-		}else if(type === "day"){
-			tickFormat = d3.timeFormat('%a')
-			//ticks = 7
-			//console.log("day ticks")
-		}else if(type === 'month'){
-			tickFormat = d3.timeFormat('%m')
-			//ticks = 12
-			//console.log('month ticks')
+			for (var i = 0; i < data.length; i++){
+				var b = data[i].bins
+				for(var j =0; j< b.length; j++){
+					let v =  parseInt(b[j].bin, 10)
+					//console.log("v: ", v)
+					if( v > ymax) ymax = v;
+					if( v < ymin) ymin = v;
+				}	
+			}
 		}
-		// week -> %U
-		return [ticks, tickFormat]
+
+		console.log("y min-max: ", ymin, " ", ymax)
+		x.domain([0, data.length])
+		y.domain([ymin, ymax])
+		this.ydMax = ymax;
+		this.ydMin = ymin;
 	}
 
 	renderAxis(data, options) {
+		console.log("render axis: ")
 		const { chart, xAxis, yAxis} = this
-		//const { xTicks, yTicks } = this
 
-		let xTick = this.tickCount(options.xTime)
-		//this.xTicks = xTick[0]
-		let xTickFormat = xTick[1]
-
-		let yTick = this.tickCount(options.yTime)
-		//this.yTicks = yTick[0]
-		let yTickFormat = yTick[1]
-
-		//console.log("X Format: ", xTickFormat, " ticks: ", xTicks)
-		//console.log("Y Format: ", yTickFormat, " ticks: ", yTicks)
-
+		console.log(tickMap[options.yTime][0])
+		
 		this.xAxis = d3.axisBottom()
 		  .scale(this.x)
-		  .ticks(24)
-		  .tickFormat(xTickFormat)
+		  .tickFormat(function(d, i){
+		  	return tickMap[options.xTime][i]
+		  })
 
 		this.yAxis = d3.axisLeft()
 		  .scale(this.y)
-		  .ticks(d3.timeDay.every(1))
-		  .tickFormat(yTickFormat)
+		  .tickFormat(function(d, i){
+		  	console.log("y axis tick ",i,": ", tickMap[options.yTime][i]);
+		  	return tickMap[options.yTime][i]
+		  })
 
 		const c = chart.transition()
 
 		c.select('.x.axis').call(xAxis)
 		c.select('.y.axis').call(yAxis)
+
+		c.select('.x.label').text(options.xTime)
+		c.select('.y.label').text(options.yTime)
 	}
 
 	renderBuckets(data) {
-		const { chart, color, opacity, gap, yStep } = this
+		console.log("render buckets: " )
+		const { chart, color, opacity, gap, ydMin, ydMax} = this
 		const [w, h] = this.dimensions()
 
 		// max count
 		const zMax = d3.max(data, d => d3.max(d.bins, d => d.count))
-		const ydMin = d3.min(data, d => d3.min(d.bins, d => d.bin))
-		const ydMax = d3.max(data, d => d3.max(d.bins, d => d.bin))
+
+		//const ydMin = d3.min(data, d => d3.min(d.bins, d => parseInt(d.bin)))
+		//const ydMax = d3.max(data, d => d3.max(d.bins, d => parseInt(d.bin)))
 
 		// color domain
 		color.domain([0, zMax])
@@ -210,10 +225,10 @@ export default class Heatmap {
 		// exit
 		col.exit().remove()
 
-		this.renderBinRect(col, bw, bh, gap, yStep)
+		this.renderBinRect(col, bw, bh, gap)
 	}
 
-	renderBinRect(col, bw, bh, gap, yStep) {
+	renderBinRect(col, bw, bh, gap) {
 		const { opacity, color, minC, mouseover, mouseout } = this
 
 		const bin = col.selectAll('.bin')
@@ -222,8 +237,6 @@ export default class Heatmap {
 		// enter
 		bin.enter().append('rect')
 		  .attr('class', 'bin')
-
-		//console.log("ystep " + this.yStep)
 
 		// update
 		bin.style('fill', d => color(d.count-minC))
@@ -241,16 +254,17 @@ export default class Heatmap {
 	}
 
 	render(data, options) {
-		this.prepare(data, options)
-		this.renderAxis(data, options)
-		//console.log(data)
-		this.renderBuckets(data, options)
+		if(data.length >0 && options.xTime != null && options.yTime != null){
+			console.log("rendera geldik: xTime :", options.xTime ," , yTime:", options.yTime)
+			console.log(data)
+			this.prepare(data, options)
+			this.renderAxis(data, options)
+			this.renderBuckets(data, options)
+		}
 	}
 
-	update(data) {
-		this.render(data, {
-		  animate: true
-		})
+	update(data, options) {
+		this.render(data, options)
 	}
 }
 

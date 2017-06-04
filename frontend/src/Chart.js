@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import HeatMap from './HeatMap';
 import UploadForm from './UploadForm';
 
-import { ButtonGroup, Button} from 'react-bootstrap';
+import { ButtonGroup, Button, Col, Row, Grid} from 'react-bootstrap';
 
 const getdata = (int1, int2, op, op_field) => {
 	// serverdan cek
@@ -23,8 +23,6 @@ const getdata = (int1, int2, op, op_field) => {
 	
 	// hicbir buton yoksa
 	if(int1 == null && int2 == null) return "";
-
-	console.log("query: ",query)	
 
 	fetch(query,{
 			method: 'GET'
@@ -57,13 +55,13 @@ const getdata = (int1, int2, op, op_field) => {
 				console.log(' get parsing failed', err)
 			});
 		});
+
+	console.log("query: ",query)	
 	return data;
 }
 
 const buttonStyle = { false: "primary", true: "info" };
-const buttonClicked = (x, y, b) => { 
-	return (x === b || y === b)? true : false;
-}
+const buttonClicked = (x, y, b) => { return (x === b || y === b)? true : false; }
 
 class Plot extends React.Component {
 	
@@ -85,15 +83,15 @@ class Plot extends React.Component {
 			width: 800,
 			height: 400
 		})
-		this.setState({
-			data: getdata(this.state.x, this.state.y, 'sum', 'AKTIF'),
-		})
-		this.changeData(this.state.data) 
+		//this.setState({
+		//	data: getdata(this.state.x, this.state.y, 'sum', 'AKTIF'),
+		//})
+		//this.changeData(this.state.data) 
 	}
 
 	componentDidUpdate() {
   		//console.log("did update")
-		this.changeData(this.state.data) 
+		//this.changeData(this.state.data) 
 	}
 
 	buildTensor = () => {
@@ -103,20 +101,28 @@ class Plot extends React.Component {
 			.then((response) => {
 				response.text().then((json) => {
 					//console.log('parsed json', JSON.parse(json))
-					this.changeData(JSON.parse(json).result)
+					console.log("buildledik")
 				}).catch((err) => {
 					console.log('parsing failed in build tensor', err)
 				});
 			});
+		this.setState({data: getdata(this.state.x, this.state.y, 'sum', 'AKTIF')})
 	}
 
-	changeData(){
-  		//console.log("change data")
-  		console.log("change data: ", this.state.data)
-		this.c.render(this.state.data, {
-			x: this.state.x,
-			y: this.state.y
+	changeData(d, x, y){
+
+		//let d = getdata(this.state.x, this.state.y, 'sum', "AKTIF")
+		
+
+		//this.setState({ data: d })	
+		console.log("change data: ", d)
+  		console.log("change data: " , this.state.x , " ", this.state.y)
+  		
+		this.c.render(d, {
+			xTime: x,
+			yTime: y
 		})
+	
 	}
 
 	changeAxis = (e) => {
@@ -142,33 +148,48 @@ class Plot extends React.Component {
 
 		console.log("button clicked")
 		console.log('x: ',x , " y: ", y)
-		this.setState({
-			data: getdata(x, y, 'sum', "AKTIF"),
-			x: x,
-			y: y
-		})
-		
-		this.changeData()
+
+		let d = getdata(x, y, 'sum', "AKTIF")
+
+		this.setState({data: d, x: x, y: y})
+
+		this.changeData(d, x, y)
 	}
 
 	render() {
-		return <div>
-			<div>
-				<UploadForm data={this.props.data} />
+		return <div style={{marginTop: 5 + 'em'}}>
+		<Grid>
+			<Col md={9}>
+				<section>
+					<svg ref="c" className="chart"></svg>
+				</section>
+			</Col>
+
+			<div style={{marginTop: 3 + 'em'}}>
+			<Col md={3} >
+				<Row className="show-grid">
+					<UploadForm data={this.props.data} />
+					<Button name='build' bsStyle="primary" onClick={this.buildTensor}>Build Tensor</Button>		
+				</Row>
+
+				<div style={{marginTop: 3 + 'em'}}>
+				<Row className="show-grid">
+					<ButtonGroup>
+						<Button name='hour' bsStyle={buttonStyle[buttonClicked(this.state.x, this.state.y, 'hour')]} onClick={this.changeAxis}>Hour</Button>
+						<Button name='day' bsStyle={buttonStyle[buttonClicked(this.state.x, this.state.y, 'day')]} onClick={this.changeAxis}>Day</Button>
+						<Button name='month' bsStyle={buttonStyle[buttonClicked(this.state.x, this.state.y, 'month')]} onClick={this.changeAxis}>Month</Button>
+					</ButtonGroup>
+				</Row>
+				</div>
+
+				<div style={{marginTop: 1 + 'em'}}>
+				<Row >
+					<Button name='update' bsStyle="primary" onClick={ () => {this.changeData(this.state.data, this.state.x, this.state.y)} }>Update</Button>
+				</Row>
+				</div>
+			</Col>
 			</div>
-
-			<Button name='build' bsStyle="primary" onClick={this.buildTensor}>Build Tensor</Button>
-			<Button name='update' bsStyle="primary" onClick={ () => {this.changeData(this.state.data)} }>Update</Button>
-
-			<ButtonGroup>
-				<Button name='hour' bsStyle={buttonStyle[buttonClicked(this.state.x, this.state.y, 'hour')]} onClick={this.changeAxis}>Hour</Button>
-				<Button name='day' bsStyle={buttonStyle[buttonClicked(this.state.x, this.state.y, 'day')]} onClick={this.changeAxis}>Day</Button>
-				<Button name='month' bsStyle={buttonStyle[buttonClicked(this.state.x, this.state.y, 'month')]} onClick={this.changeAxis}>Month</Button>
-			</ButtonGroup>
-
-			<section>
-				<svg ref="c" className="chart"></svg>
-			</section>
+		</Grid>
 		</div>
 	}
 }

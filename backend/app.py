@@ -277,6 +277,7 @@ def group_time_operate(interval, operation, op_field):
         return json.dumps({"status": "error", "error": "Invalid operation"})
 
     res = group_by_time_operate(interval, operation, op_field)
+    res = collections.OrderedDict(sorted(res.items()))
 
     if res is None:
         return json.dumps({"status": "error", "error": "Data processing error"})
@@ -308,6 +309,10 @@ def group_time_operate2(interval1, interval2, operation, op_field):
         return json.dumps({"status": "error", "error": "Invalid operation"})
 
     res = group_by_time_operate2(interval1, interval2, operation, op_field)
+    for k, v in res.iteritems():
+        res[k] = collections.OrderedDict(sorted(v.items()))
+
+    res = collections.OrderedDict(sorted(res.items()))
 
     if res is None:
         return json.dumps({"status": "error", "error": "Data processing error"})
@@ -339,10 +344,12 @@ def group_by_time(interval):
             el = d.weekday()
         elif interval == 'hour':
             el = d.hour
-        if str(el) in groups:
-            groups[str(el)].append(elem[-1])
+        if el in groups:
+            groups[el].append(elem[-1])
         else:
-            groups[str(el)] = [elem[-1]]
+            groups[el] = [elem[-1]]
+        #print("data point: ", el)
+        #print("date: ", d, "\n")
 
     groups = collections.OrderedDict(sorted(groups.items(), key=lambda t: t[0]))
 
@@ -401,8 +408,8 @@ def group_by_time2(interval1, interval2):
         elif interval2 == 'hour':
             el2 = d2.hour
 
-        k1 = str(el1)
-        k2 = str(el2)
+        k1 = el1
+        k2 = el2
 
         if k1 in groups:
             if k2 in groups[k1]:
